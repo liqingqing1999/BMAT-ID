@@ -6,8 +6,8 @@ sites is a property of the adipocyte itself, and how much is the composition of
 the tissue it was isolated from.
 
 Every number, figure and table of the accompanying manuscript traces to a script
-below. Three scripts render a figure from a released, machine-readable table
-rather than from numbers typed into the source (`51_*`, `52_*`, `53_*`), so the
+below. Each of the five figure scripts renders its panels from a released,
+machine-readable table rather than from numbers typed into the source, so the
 chain raw data → result table → figure is unbroken and can be re-run end to end
 from public data. The released figures and result tables ship alongside the code.
 
@@ -30,7 +30,7 @@ BMAT-ID/
 │   ├── README.md          # what to download and where to put it
 │   ├── raw/               # GSE291355 counts go here (not tracked)
 │   └── processed/         # written at run time (not tracked)
-├── scripts/               # 41 numbered analysis scripts
+├── scripts/               # 42 numbered analysis scripts
 ├── results/
 │   ├── figures/           # released figures, PNG + PDF
 │   └── tables/            # released result tables
@@ -176,19 +176,21 @@ Requires `BMAT_REF_RDS` and `BMAT_REF_FEATURES` (see `data/README.md`).
 | script | what it does | key output |
 |---|---|---|
 | `50_fig1_panel_data.py` | maps every gene to a symbol and merges the four variance tables (**network** for the mapping, cached) — **run after `07_*`, `21_*`, `25_*`** | `BMATID_varpart_allgenes_merged.csv`, `BMATID_allgenes_symbols.csv` |
-| `51_fig1_site_composition.py` | **Figure 1** (a–d): variance composition across the four models, per-gene ECDF, positive-control panel, surviving genes | `BMATID_Fig1_site_composition.{png,pdf}` |
-| `52_fig2_attribution_ladder.py` | **Figure 2**: the attribution ladder and its specificity control; reads `BMATID_ladder_data.json` | `BMATID_Fig2_attribution_ladder.{png,pdf}` |
-| `53_fig3_module_retention.py` | **Figure 3**: what survives adipogenic culture, by module; reads `BMATID_module_retention.csv` | `BMATID_Fig3_module_retention.{png,pdf}` |
-| `54_figS1_reference_scores.py` | **Figure S1**: per-library reference-anchored scores | `BMATID_FigS1_reference_scores.{png,pdf}` |
+| `51_fig1_site_variance.py` | **Figure 1**: variance composition across the four models, and the per-gene ECDF of site variance (**run after `21_*` and `32_*`**) | `BMATID_Fig1_site_variance.{png,pdf}` |
+| `52_fig2_module_retention.py` | **Figure 2**: what survives adipogenic culture, by module; reads `BMATID_module_retention.csv` | `BMATID_Fig2_module_retention.{png,pdf}` |
+| `53_fig3_removal_ladder.py` | **Figure 3**: the removal ladder and its count-matched random control; reads `BMATID_ladder_data.json` | `BMATID_Fig3_removal_ladder.{png,pdf}` |
+| `54_fig4_positive_control.py` | **Figure 4**: the positive control, and the survival of the strongest site genes by tier; reads `BMATID_varpart_allgenes_merged.csv` (**run after `50_*`**) | `BMATID_Fig4_positive_control.{png,pdf}` |
+| `55_figS1_reference_scores.py` | **Figure S1**: per-library reference-anchored scores | `BMATID_FigS1_reference_scores.{png,pdf}` |
 
 ### Reproducing only the figures
 
 The released figures in `results/figures/` were rendered from the released
-tables, so the four figure scripts (`51`–`54`) can be re-run on their own
+tables, so the five figure scripts (`51`–`55`) can be re-run on their own
 without fitting a single mixed model — every input they need is already in
-`results/tables/`. `52_*` needs `BMATID_ladder_data.json` (shipped) and `53_*`
-needs `BMATID_module_retention.csv` (shipped); both fail with a clear message if
-the file is missing.
+`results/tables/`. `52_*` needs `BMATID_module_retention.csv` (shipped), `53_*`
+needs `BMATID_ladder_data.json` (shipped) and `54_*` needs
+`BMATID_varpart_allgenes_merged.csv` (shipped); each fails with a clear message
+if its file is missing.
 
 ---
 
@@ -231,12 +233,13 @@ reproducible; `20,041` is the universe the mixed models are fitted on, whereas
 
 | file | content |
 |---|---|
-| `BMATID_Fig1_site_composition` | (a) variance composition across four mixed models; (b) ECDF of per-gene site variance, with the exact-zero fraction (and the 1e-9 comparison) marked; (c) positive control — axis-patterning transcription factors keep their site variance, haematopoietic/bone/adipogenic markers lose it; (d) survival of the strongest site genes |
-| `BMATID_Fig2_attribution_ladder` | site-dependent gene count as a function of how many CD45-co-varying genes are removed, with the equal-number random control |
-| `BMATID_Fig3_module_retention` | *in vitro*/*in vivo* effect-size retention by functional module, and the per-gene *in vivo* versus *in vitro* F comparison |
+| `BMATID_Fig1_site_variance` | (a) variance composition across four mixed models; (b) ECDF of per-gene site variance, with the exact-zero fraction (and the 1e-9 comparison) marked |
+| `BMATID_Fig2_module_retention` | *in vitro*/*in vivo* effect-size retention by functional module, and the per-gene *in vivo* versus *in vitro* F comparison |
+| `BMATID_Fig3_removal_ladder` | site-dependent gene count as a function of how many CD45-co-varying genes are removed, with the count-matched random control |
+| `BMATID_Fig4_positive_control` | (a) positive control — axis-patterning transcription factors keep their site variance after composition adjustment, haematopoietic/bone/adipogenic markers lose it; (b) survival of the strongest site genes, by site-variance tier |
 | `BMATID_FigS1_reference_scores` | reference-anchored score of every library, and the donor-matched *in vivo* versus *in vitro* comparison |
 
-Each figure ships as PNG (400 dpi for Figure 1, 300 dpi for the rest) and
+Each figure ships as PNG (400 dpi for Figures 1 and 4, 300 dpi for the rest) and
 vector PDF. The PNGs are byte-reproducible; the PDFs differ between runs only in
 the `/CreationDate` field that the matplotlib PDF backend writes into every file.
 
@@ -249,7 +252,7 @@ the `/CreationDate` field that the matplotlib PDF backend writes into every file
 - **Engines** — `BMATID_limma_allgenes.csv`, `BMATID_deseq2_primary_shrunk.csv`, `BMATID_deseq2_diff_shrunk.csv`, `BMATID_deseq2_axis_attribution.csv`, `BMATID_deseq2_diff_residual_genes.csv`.
 - **Composition** — `BMATID_axis_scores.rds`, `BMATID_axis_correlations.rds`, `BMATID_marker_ensg.tsv`, `BMATID_primary_cd45_annotated.csv`, `BMATID_allgenes_symbols.csv`.
 - **Reference atlas** — `BMATID_ref_pseudobulk_clusters.csv`, `BMATID_ref_cluster_by_group.csv`, `BMATID_ref_cluster_markerscores.csv`, `BMATID_ref_axismarkers_log2cpm.csv`, `BMATID_ref_supertype_specificity.csv`, `BMATID_deconv_L1_scores.csv`, `BMATID_deconv_proportions.csv`.
-- **Figure inputs** — `BMATID_ladder_data.json` (Figure 2), `BMATID_module_retention.csv` (Figure 3).
+- **Figure inputs** — `BMATID_module_retention.csv` (Figure 2), `BMATID_ladder_data.json` (Figure 3), `BMATID_varpart_allgenes_merged.csv` (Figure 4).
 
 A few scripts report their result as a plain-text table in `logs/` rather than
 as a csv (the diagnostics of `02_*`, `03_*`, `04_*`, `06_*`, `10_*`, `14_*`,
@@ -292,7 +295,7 @@ code.
    log text in `logs/` is written in Chinese — it is the working record of the
    analysis rather than documentation.
 6. **Script numbers are not contiguous.** The analysis grew in stages, so
-   `scripts/` runs 01–32, 40–42 and 50–54 (33–39 and 43–49 were never used).
+   `scripts/` runs 01–32, 40–42 and 50–55 (33–39 and 43–49 were never used).
    The gaps carry no meaning beyond the order in which the stages were added;
    the one step added after the numbering was frozen is `07b_*`.
 
