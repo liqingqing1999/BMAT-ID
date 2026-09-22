@@ -1,0 +1,8 @@
+{
+ "baseline_genes": 20073,
+ "baseline_site_dependent": 2712,
+ "removed_cd45": [0, 1414, 2975, 4930, 7070],
+ "site_dependent_after": [2712, 1222, 494, 207, 128],
+ "random_removed": [2975, 7070],
+ "random_site_dependent": [2320, 1777]
+}
