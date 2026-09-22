@@ -1,0 +1,54 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite the manuscript below as well as this repository."
+title: "Niche composition, not positional memory, dominates the site-resolved transcriptome of human bone marrow adipocytes"
+type: software
+version: "1.0.0"
+authors:
+  - family-names: Liu
+    given-names: Min
+    affiliation: "Taizhou Second People's Hospital, Taizhou, Jiangsu, China"
+  - family-names: Fu
+    given-names: Jiaju
+    affiliation: "Nanjing Medical University, Nanjing, Jiangsu, China"
+  - family-names: Chen
+    given-names: Yansong
+    affiliation: "Nanjing Medical University, Nanjing, Jiangsu, China"
+  - family-names: Li
+    given-names: Qingqing
+    orcid: "https://orcid.org/0009-0008-6734-0241"
+    affiliation: "Nanjing Medical University, Nanjing, Jiangsu, China; Jiangsu Province Hospital (The First Affiliated Hospital with Nanjing Medical University), Nanjing, Jiangsu, China"
+repository-code: "https://github.com/liqingqing1999/BMAT-ID"
+url: "https://github.com/liqingqing1999/BMAT-ID"
+abstract: >-
+  Analysis code for the site-resolved transcriptomics of human bone marrow
+  adipocytes in GSE291355: threshold-free variance decomposition of the
+  anatomical-site signal, marker and reference-anchored composition signatures,
+  contamination attribution, and all figures and result tables.
+keywords:
+  - bone marrow adipocyte
+  - RNA-seq
+  - variance decomposition
+  - composition deconvolution
+  - reproducibility
+license: MIT
+license-url: "https://github.com/liqingqing1999/BMAT-ID/blob/main/LICENSE"
+date-released: "2026-09-21"
+preferred-citation:
+  type: unpublished
+  title: "Niche composition, not positional memory, dominates the site-resolved transcriptome of human bone marrow adipocytes"
+  authors:
+    - family-names: Liu
+      given-names: Min
+      affiliation: "Taizhou Second People's Hospital, Taizhou, Jiangsu, China"
+    - family-names: Fu
+      given-names: Jiaju
+      affiliation: "Nanjing Medical University, Nanjing, Jiangsu, China"
+    - family-names: Chen
+      given-names: Yansong
+      affiliation: "Nanjing Medical University, Nanjing, Jiangsu, China"
+    - family-names: Li
+      given-names: Qingqing
+      orcid: "https://orcid.org/0009-0008-6734-0241"
+      affiliation: "Nanjing Medical University, Nanjing, Jiangsu, China; Jiangsu Province Hospital (The First Affiliated Hospital with Nanjing Medical University), Nanjing, Jiangsu, China"
+  year: 2026
+  month: 9
