@@ -6,7 +6,7 @@ sites is a property of the adipocyte itself, and how much is the composition of
 the tissue it was isolated from.
 
 Every number, figure and table of the accompanying manuscript traces to a script
-below. Each of the five figure scripts renders its panels from a released,
+below. Each of the six figure scripts renders its panels from a released,
 machine-readable table rather than from numbers typed into the source, so the
 chain raw data → result table → figure is unbroken and can be re-run end to end
 from public data. The released figures and result tables ship alongside the code.
@@ -15,6 +15,7 @@ from public data. The released figures and result tables ship alongside the code
 - **Primary analysis:** threshold-free variance decomposition (`variancePartition` + `lme4`) of the anatomical-site signal, and its two-engine sensitivity (`limma-voom`, `DESeq2`).
 - **Composition:** hand-defined marker axes and signatures derived from an independent single-cell reference, used to ask whether the site term survives adjustment.
 - **Headline result:** the site signal is large *in vivo*, is quantitatively abolished *in vitro*, and *in vivo* is not separable from cell composition — the composition covariates absorb it.
+- **Independent validation:** a parametric simulation with the truth known by construction, run through the same two models, and the real data refitted on the simulation’s own gene pools (Stage 8).
 
 ---
 
@@ -30,7 +31,7 @@ BMAT-ID/
 │   ├── README.md          # what to download and where to put it
 │   ├── raw/               # GSE291355 counts go here (not tracked)
 │   └── processed/         # written at run time (not tracked)
-├── scripts/               # 42 numbered analysis scripts
+├── scripts/               # 45 numbered analysis scripts
 ├── results/
 │   ├── figures/           # released figures, PNG + PDF
 │   └── tables/            # released result tables
@@ -99,9 +100,10 @@ cached by `50_*`).
 
 ### Run order
 
-The numbering is the run order, with one exception: the single step added after
-the numbering was frozen carries a letter suffix, and `07b_*` runs between `07_*`
-and `08_*`. Within a stage the scripts are independent unless noted.
+The numbering is the run order, with two exceptions: `07b_*` carries a letter
+suffix because it was added after the numbering was frozen, and runs between
+`07_*` and `08_*`; and `55_*` (Figure 5) reads the output of `60_*`/`61_*`, the
+simulation stage. Within a stage the scripts are independent unless noted.
 
 #### Stage 1 — data, diagnostics and engine comparison
 
@@ -180,12 +182,29 @@ Requires `BMAT_REF_RDS` and `BMAT_REF_FEATURES` (see `data/README.md`).
 | `52_fig2_module_retention.py` | **Figure 2**: what survives adipogenic culture, by module; reads `BMATID_module_retention.csv` | `BMATID_Fig2_module_retention.{png,pdf}` |
 | `53_fig3_removal_ladder.py` | **Figure 3**: the removal ladder and its count-matched random control; reads `BMATID_ladder_data.json` | `BMATID_Fig3_removal_ladder.{png,pdf}` |
 | `54_fig4_positive_control.py` | **Figure 4**: the positive control, and the survival of the strongest site genes by tier; reads `BMATID_varpart_allgenes_merged.csv` (**run after `50_*`**) | `BMATID_Fig4_positive_control.{png,pdf}` |
-| `55_figS1_reference_scores.py` | **Figure S1**: per-library reference-anchored scores | `BMATID_FigS1_reference_scores.{png,pdf}` |
+| `55_fig5_simulation.py` | **Figure 5**: simulation-based independent validation — the known-truth regimes against the real data, and the composition-strength sweep; reads `BMATID_sim_validation_summary.csv` and `BMATID_sim_validation_realref.csv` (**run after `60_*` and `61_*`**) | `BMATID_Fig5_simulation_validation.{png,pdf}` |
+| `56_figS1_reference_scores.py` | **Figure S1**: per-library reference-anchored scores | `BMATID_FigS1_reference_scores.{png,pdf}` |
+
+#### Stage 8 — simulation-based validation
+
+| script | what it does | key output |
+|---|---|---|
+| `60_sim_validation.R` | the parametric simulation with known truth, calibrated gene by gene to the real *in vivo* libraries: three regimes (composition only / intrinsic only / both) through the naive and the composition-adjusted mixed model, plus the composition-strength sweep. Accepts `smoke` and `quick` for a fast trial run | `BMATID_sim_validation_replicates.csv`, `BMATID_sim_validation_summary.csv` |
+| `61_sim_real_ref.R` | the real data fitted on the simulation’s own 400-gene pools, so every simulated replicate is compared against the matched observation rather than against a global figure | `BMATID_sim_validation_realref.csv` |
+
+Stage 8 is the independent validation of the composition inference, and it is
+self-contained: it reads the raw counts and the released variance tables and
+writes only the simulation outputs. With the truth known by construction, a
+*composition-only* regime still produces a large naive site term (20.1%) that
+the adjustment removes (3.8%, against an oracle floor of 2.2%), whereas an
+*intrinsic-only* regime keeps its effect (15.3% → 12.9%). The real data,
+fitted on the same gene pools, behaves like the composition-only regime
+(18.9% → 3.9%).
 
 ### Reproducing only the figures
 
 The released figures in `results/figures/` were rendered from the released
-tables, so the five figure scripts (`51`–`55`) can be re-run on their own
+tables, so the six figure scripts (`51`–`56`) can be re-run on their own
 without fitting a single mixed model — every input they need is already in
 `results/tables/`. `52_*` needs `BMATID_module_retention.csv` (shipped), `53_*`
 needs `BMATID_ladder_data.json` (shipped) and `54_*` needs
@@ -222,6 +241,11 @@ the manuscript.
 | correlation, immune signature vs CD45 | +0.972 | `31_*` |
 | reference-anchored model: site / exact-zero | 7.2% / 66.8% | `32_*` |
 | module retention (*in vitro*/*in vivo* effect size) | adipogenic core 62.9%, haematopoietic/plasma-cell 3.5%, bone/mineralisation 10.6%, MSC/stemness 12.3%, haematopoietic niche 13.8%, endothelial 96.4% | `40_*` |
+| simulation, regime A (composition only): naive → adjusted | 20.1% → 3.8% (oracle floor 2.2%) | `60_*` |
+| simulation, regime B (intrinsic only): naive → adjusted | 15.3% → 12.9% | `60_*` |
+| simulation, regime C (both): naive → adjusted | 22.6% → 4.3% | `60_*` |
+| real data on the simulation’s own pools: naive → adjusted | 18.9% → 3.9% | `61_*` |
+| composition-strength sweep 0.0 → 2.0: naive / adjusted | 8.0% → 33.5% / 7.9% → 3.6% | `60_*` |
 
 The ladder in `19_*` uses `set.seed(42)`, so the equal-number random control is
 reproducible; `20,041` is the universe the mixed models are fitted on, whereas
@@ -237,15 +261,16 @@ reproducible; `20,041` is the universe the mixed models are fitted on, whereas
 | `BMATID_Fig2_module_retention` | *in vitro*/*in vivo* effect-size retention by functional module, and the per-gene *in vivo* versus *in vitro* F comparison |
 | `BMATID_Fig3_removal_ladder` | site-dependent gene count as a function of how many CD45-co-varying genes are removed, with the count-matched random control |
 | `BMATID_Fig4_positive_control` | (a) positive control — axis-patterning transcription factors keep their site variance after composition adjustment, haematopoietic/bone/adipogenic markers lose it; (b) survival of the strongest site genes, by site-variance tier |
+| `BMATID_Fig5_simulation_validation` | (a) the three known-truth regimes through the naive, composition-adjusted and oracle estimators, with the real data on the same pools as dashed lines; (b) the composition-strength sweep — the naive estimate tracks the confounder, the adjusted estimate does not |
 | `BMATID_FigS1_reference_scores` | reference-anchored score of every library, and the donor-matched *in vivo* versus *in vitro* comparison |
 
-Each figure ships as PNG (400 dpi for Figures 1 and 4, 300 dpi for the rest) and
+Each figure ships as PNG (400 dpi for Figures 1, 4 and 5, 300 dpi for the rest) and
 vector PDF. The PNGs are byte-reproducible; the PDFs differ between runs only in
 the `/CreationDate` field that the matplotlib PDF backend writes into every file.
 
 ## Result tables
 
-`results/tables/` holds the released tables, in five groups:
+`results/tables/` holds the released tables, in six groups:
 
 - **Variance decomposition** — `BMATID_varpart_invivo.csv`, `BMATID_varpart_invitro.csv`, `BMATID_varpart_invivo_comp.csv` (per-gene variance share of every term, the three main models), `BMATID_varpart_M7_reference.csv` (reference-anchored model), `BMATID_varpart_summary.json` (headline quantities), `BMATID_varpart_inputs.rds`.
 - **Survivors and residuals** — `BMATID_varpart_survivors.csv`, `BMATID_varpart_residual.csv`, `BMATID_residual494_schemeA.tsv`, `BMATID_residual1248_schemeB.tsv`, `BMATID_residual_site_genes.tsv`, plus the Enrichr outputs.
@@ -253,6 +278,7 @@ the `/CreationDate` field that the matplotlib PDF backend writes into every file
 - **Composition** — `BMATID_axis_scores.rds`, `BMATID_axis_correlations.rds`, `BMATID_marker_ensg.tsv`, `BMATID_primary_cd45_annotated.csv`, `BMATID_allgenes_symbols.csv`.
 - **Reference atlas** — `BMATID_ref_pseudobulk_clusters.csv`, `BMATID_ref_cluster_by_group.csv`, `BMATID_ref_cluster_markerscores.csv`, `BMATID_ref_axismarkers_log2cpm.csv`, `BMATID_ref_supertype_specificity.csv`, `BMATID_deconv_L1_scores.csv`, `BMATID_deconv_proportions.csv`.
 - **Figure inputs** — `BMATID_module_retention.csv` (Figure 2), `BMATID_ladder_data.json` (Figure 3), `BMATID_varpart_allgenes_merged.csv` (Figure 4).
+- **Simulation** — `BMATID_sim_validation_summary.csv` (the headline quantity per regime and sweep level), `BMATID_sim_validation_replicates.csv` (the per-replicate values behind them), `BMATID_sim_validation_realref.csv` (the real data on the simulation’s own pools).
 
 A few scripts report their result as a plain-text table in `logs/` rather than
 as a csv (the diagnostics of `02_*`, `03_*`, `04_*`, `06_*`, `10_*`, `14_*`,
@@ -295,7 +321,7 @@ code.
    log text in `logs/` is written in Chinese — it is the working record of the
    analysis rather than documentation.
 6. **Script numbers are not contiguous.** The analysis grew in stages, so
-   `scripts/` runs 01–32, 40–42 and 50–55 (33–39 and 43–49 were never used).
+   `scripts/` runs 01–32, 40–42, 50–56 and 60–61 (33–39 and 43–49 were never used).
    The gaps carry no meaning beyond the order in which the stages were added;
    the one step added after the numbering was frozen is `07b_*`.
 
